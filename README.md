@@ -177,7 +177,6 @@ The forecast follows the held-out observations closely, with a mean absolute per
 - **SciPy** — one-way ANOVA
 - **Scikit-learn** — K-Means, PCA, silhouette analysis, and error metrics
 - **Statsmodels** — ARIMA time-series forecasting
-- **Jupyter Notebook** — interactive analysis
 
 ---
 
@@ -196,33 +195,6 @@ The forecast follows the held-out observations closely, with a mean absolute per
     ├── cluster-centroids.png
     └── arima-forecast.png
 ```
-
-> If your notebook or dataset uses a slightly different filename in the repository, update the structure above and the CSV path in the notebook accordingly.
-
----
-
-## How to Run the Project
-
-### 1. Clone the repository
-
-```bash
-git clone <your-repository-url>
-cd <repository-folder>
-```
-
-### 2. Install the required Python packages
-
-```bash
-pip install pandas numpy matplotlib scipy scikit-learn statsmodels jupyter
-```
-
-### 3. Start Jupyter Notebook
-
-```bash
-jupyter notebook
-```
-
-Open `Retail_Prices_Final_Project.ipynb` and run the cells from top to bottom. Make sure `Retail_Prices_of _Products.csv` is in the project directory or update `file_path` in the notebook.
 
 ---
 
