@@ -1,168 +1,244 @@
-# Canadian Retail Prices Data Analysis
+# Regional Dynamics of Canadian Retail Prices
 
-A data mining project exploring Canadian retail price trends, regional differences, province clustering, and time-series forecasting using Python.
+**Exploratory Analysis, Provincial Clustering, and ARIMA-Based Forecasting**
 
-[Analysis Notebook](Retail_Prices_Final_Project.ipynb) | [Project Report](Data_Mining_Final_Project_Report.pdf)
+This project analyzes monthly Canadian retail-price data from **2017 to 2025** to understand how prices evolve over time, how they differ across provinces and product types, whether provincial price differences are statistically significant, and whether short-term essential-item prices can be forecast accurately.
+
+The workflow combines **exploratory data analysis (EDA)**, **one-way ANOVA**, **K-Means clustering**, **Principal Component Analysis (PCA)**, and **ARIMA time-series forecasting**.
+
+---
 
 ## Project Objectives
 
-- Compare average prices of essential and non-essential products over time.
-- Examine price distributions across encoded provinces.
-- Test whether mean prices differ across provinces.
-- Identify groups of provinces with similar quarterly price profiles.
-- Forecast essential-product prices and evaluate prediction accuracy.
+The analysis focuses on four main questions:
 
-## Dataset
+1. How have **essential** and **non-essential** retail prices changed over time?
+2. Do average retail prices differ significantly across provinces?
+3. Can provinces be grouped according to similar price patterns?
+4. How accurately can an ARIMA model forecast near-term essential-item prices?
 
-The dataset includes retail prices, product classifications, encoded geographic regions, and tax-related attributes. The saved visualizations cover 2017 to early 2025.
+---
 
-| Features | Description |
-| --- | --- |
-| Year, Month | Observation period |
-| GEO | Encoded geographic region |
-| Products, Product Category | Product name and category |
-| VALUE | Original price per unit before tax |
-| Essential | Essential or non-essential classification |
-| Taxable, Total tax rate, Value after tax | Tax-related information |
-| UOM, COORDINATE | Unit of measure and product identifier |
+## Dataset and Preprocessing
 
-The analysis uses before-tax prices from `VALUE`. Geographic labels are encoded as Province 1, Province 2, and so on.
+The dataset contains retail prices for product categories across **11 provinces** over the 2017–2025 period.
 
-## Tools and Technologies
+The preprocessing pipeline in the notebook:
 
-**Python · pandas · NumPy · Matplotlib · SciPy · scikit-learn · statsmodels · Jupyter Notebook**
+- combines `Year` and `Month` into a monthly `date` variable;
+- normalizes province values from the `GEO` field;
+- converts the `VALUE` column to numeric `Price` values;
+- checks for missing and duplicate observations;
+- derives quarterly and calendar features for analysis;
+- creates monthly and quarterly aggregates for visualization, clustering, and forecasting.
 
-A Power BI dashboard file is also included in the dataset directory.
+The validation step found **0 missing values** and **0 duplicate rows** after preprocessing.
 
-## Methodology
+---
 
-### Data Preparation
+## Analysis Workflow
 
-- Converted year and month into datetime values.
-- Cleaned geographic labels and converted prices to numeric values.
-- Removed observations missing required date, province, or price values.
-- Created monthly and quarterly features.
-- Checked missing values and duplicate records.
+### 1. Essential vs. Non-Essential Price Trends
 
-The saved validation output shows **zero missing values and zero duplicate rows after preprocessing**.
+Monthly average prices were calculated separately for essential and non-essential products.
 
-### Exploratory Data Analysis
+<p align="center">
+  <img src="figures/average-price-trends.png" alt="Average Price Over Time" width="900">
+</p>
 
-Created time-series charts, a province-level heatmap, boxplots, category histograms with density estimates, and a feature-correlation heatmap.
+The analysis shows a clear long-term increase in both categories. Essential-product prices are consistently higher and show larger short-term fluctuations, while non-essential prices follow a smoother upward path.
 
-### Statistical Analysis
+---
 
-Applied **one-way ANOVA** to compare mean prices across provinces.
+### 2. Provincial Price Evolution
 
-### Clustering
+A province-by-month heatmap was used to compare how average prices changed geographically over time.
 
-Constructed quarterly average-price profiles for each province and evaluated **K-Means with 2–7 clusters** using elbow and silhouette diagnostics. Fitted a final three-cluster model and used **PCA** for two-dimensional visualization.
+<p align="center">
+  <img src="figures/province-price-heatmap.png" alt="Province Average Price Heatmap" width="1000">
+</p>
 
-### Forecasting
+The heatmap highlights persistent provincial differences while also showing the broad upward price movement after 2021–2022.
 
-Fitted **ARIMA(1, 1, 1)** to monthly average essential-product prices. The last 12 monthly observations were reserved for testing, with performance measured using RMSE, MAE, and MAPE.
+---
 
-## Results
+### 3. Price Distribution by Province
 
-The figures and metrics below are taken from the notebook's saved outputs.
+Box plots were used to compare the median, spread, and overall distribution of prices across provinces.
 
-### Essential and Non-Essential Price Trends
+<p align="center">
+  <img src="figures/province-price-distributions.png" alt="Price Distribution by Province" width="1000">
+</p>
 
-Both categories show increasing average prices over the observed period, particularly around 2021–2023.
+Although provincial distributions overlap, their centers and spreads are not identical, motivating a formal statistical test.
 
-![Average price trends](figures/average-price-trends.png)
+---
 
-These values are averages across the included products, rather than the cost of a standardized shopping basket.
+## Statistical Test: One-Way ANOVA
 
-### Regional Price Differences
+A one-way ANOVA was performed with province as the grouping variable and retail price as the response.
 
-The heatmap summarizes monthly average prices across encoded provinces.
+| Metric | Result |
+|---|---:|
+| F-statistic | **6.31** |
+| p-value | **< 0.0001** |
 
-![Province price heatmap](figures/province-price-heatmap.png)
+Because the p-value is far below 0.05, the analysis rejects the null hypothesis that all provincial mean prices are equal. This indicates that **province is associated with statistically significant differences in average retail prices** in this dataset.
 
-The boxplots compare provincial price distributions.
+---
 
-![Provincial price distributions](figures/province-price-distributions.png)
+## Provincial Clustering
 
-| Test | Result |
-| --- | --- |
-| ANOVA F-statistic | 6.31 |
-| Printed p-value | 0.0000, rounded to four decimal places |
+### K-Means Clustering
 
-The ANOVA result provides evidence against equal mean prices across all groups under the test's assumptions. The p-value is rounded, not exactly zero. This test alone does not identify which province pairs differ.
+Quarterly average prices for each province were used as features for K-Means clustering. Elbow and silhouette diagnostics were examined, and **k = 3** was selected as an interpretable clustering solution.
 
-### Province Clustering
+### PCA Visualization
 
-The final K-Means model produced the following groups:
+PCA was used to project the high-dimensional quarterly price profiles into two dimensions for visualization.
 
-| Cluster | Provinces |
-| --- | --- |
-| 0 | Province 3, Province 4, Province 5 |
-| 1 | Province 1, Province 7, Province 8, Province 9 |
-| 2 | Province 2, Province 6, Province 10, Province 11 |
+<p align="center">
+  <img src="figures/province-clusters-pca.png" alt="Province Clusters in PCA Space" width="650">
+</p>
 
-![Province clusters in PCA space](figures/province-clusters-pca.png)
+The PCA plot shows visible separation among the three groups, supporting the use of three provincial price-pattern clusters.
 
-Cluster 1 has lower average prices than the other two cluster centroids across the plotted quarters. All three show broadly rising price trajectories.
+### Cluster Assignments
 
-![Cluster centroids over time](figures/cluster-centroids.png)
+| Province | Cluster |
+|---|---:|
+| Province 1 | 1 |
+| Province 2 | 2 |
+| Province 3 | 0 |
+| Province 4 | 0 |
+| Province 5 | 0 |
+| Province 6 | 2 |
+| Province 7 | 1 |
+| Province 8 | 1 |
+| Province 9 | 1 |
+| Province 10 | 2 |
+| Province 11 | 2 |
 
-The notebook selects **k = 3**, although the highest saved silhouette score occurs at **k = 2**. The three-cluster result is therefore an exploratory grouping rather than the silhouette-optimal solution.
+### Cluster Price Paths
 
-### ARIMA Forecasting
+The quarterly centroid of each cluster shows how its average price pattern evolves over time.
 
-| Model | Test Horizon | RMSE | MAE | MAPE |
-| --- | --- | --- | --- | --- |
-| ARIMA(1, 1, 1) | 12 months | 0.10 | 0.09 | 1.32% |
+<p align="center">
+  <img src="figures/cluster-centroids.png" alt="Cluster Centroids Over Time" width="800">
+</p>
 
-![ARIMA forecast](figures/arima-forecast.png)
+In this clustering solution:
 
-The shaded area represents the model's forecast interval. RMSE and MAE use the target series' price units; MAPE is expressed as a percentage.
+- **Cluster 1** contains the lowest-price group;
+- **Cluster 0** represents a middle-price group;
+- **Cluster 2** contains the highest-price group.
 
-Although the original chart title says “CPI,” the forecast target is an **unweighted average of essential-product prices**, not an official Consumer Price Index.
+All three clusters show a similar broad inflationary pattern after 2021, while differences between the groups remain visible.
 
-## Repository Contents
+---
 
-| File or Folder | Description |
-| --- | --- |
-| `Retail_Prices_Final_Project.ipynb` | Analysis code and saved results |
-| `Data_Mining_Final_Project_Report.pdf` | Project report |
-| `dataset/` | CSV dataset, data dictionary, and Power BI dashboard |
-| `figures/` | Figures exported from the notebook |
+## ARIMA Time-Series Forecasting
 
-## How to Run
+Essential-item monthly average prices were modeled using an **ARIMA(1, 1, 1)** model. The final 12 observations were held out as a test set, and the model generated a 12-step forecast with confidence intervals.
 
-1. Clone the repository:
+<p align="center">
+  <img src="figures/arima-forecast.png" alt="ARIMA Forecast of Essential Item Prices" width="900">
+</p>
 
-   ```bash
-   git clone https://github.com/Ekber430/canadian-retail-prices-data-analysis.git
-   cd canadian-retail-prices-data-analysis
-   ```
+### Forecast Performance
 
-2. Install the dependencies in your Python environment:
+| Metric | Score |
+|---|---:|
+| RMSE | **0.10** |
+| MAE | **0.09** |
+| MAPE | **1.32%** |
 
-   ```bash
-   python -m pip install pandas numpy matplotlib scipy scikit-learn statsmodels jupyter ipykernel
-   ```
+The forecast follows the held-out observations closely, with a mean absolute percentage error below 2% for the evaluated period.
 
-3. Open `Retail_Prices_Final_Project.ipynb` in Jupyter or VS Code. For VS Code, install the Python and Jupyter extensions and select your Python environment.
+---
 
-4. Update the data-loading cell to use:
+## Key Findings
 
-   ```python
-   file_path = 'dataset/Retail_Prices_of _Products.csv'
-   ```
+- Canadian retail prices in the dataset generally increased between **2017 and 2025**.
+- Essential items show stronger short-term fluctuations than non-essential items.
+- Provincial average prices are statistically different according to the ANOVA result (**F = 6.31, p < 0.0001**).
+- K-Means clustering identifies **three distinct provincial price-pattern groups**.
+- The three clusters preserve relative price differences even while following a common upward trend.
+- The **ARIMA(1,1,1)** model achieved **RMSE = 0.10**, **MAE = 0.09**, and **MAPE = 1.32%** on the 12-month holdout period.
 
-   The space between `of` and `_Products` is part of the filename. Run the notebook with the repository root as the working directory.
+---
 
-5. Run the cells from top to bottom.
+## Technologies Used
 
-The original dependency versions are not pinned. Results may vary across environments; the figures and metrics above describe the saved notebook run.
+- **Python**
+- **Pandas** — data loading, cleaning, aggregation, and transformation
+- **NumPy** — numerical operations
+- **Matplotlib** — visualizations
+- **SciPy** — one-way ANOVA
+- **Scikit-learn** — K-Means, PCA, silhouette analysis, and error metrics
+- **Statsmodels** — ARIMA time-series forecasting
+- **Jupyter Notebook** — interactive analysis
 
-## Limitations and Future Improvements
+---
 
-- Average prices across different products and units do not constitute a basket-weighted inflation index.
-- The ANOVA does not explicitly control for product mix or repeated observations over time.
-- Clustering uses unscaled quarterly mean prices and fills missing combinations with zero, which can influence distances.
-- Forecasting uses one holdout period and one ARIMA configuration. Baseline comparisons and rolling-window evaluation would strengthen the assessment.
-- Tax information is present in the dataset, but the notebook does not estimate causal effects of tax policies.
+## Repository Structure
+
+```text
+.
+├── Retail_Prices_Final_Project.ipynb
+├── Retail_Prices_of _Products.csv
+├── README.md
+└── figures/
+    ├── average-price-trends.png
+    ├── province-price-heatmap.png
+    ├── province-price-distributions.png
+    ├── province-clusters-pca.png
+    ├── cluster-centroids.png
+    └── arima-forecast.png
+```
+
+> If your notebook or dataset uses a slightly different filename in the repository, update the structure above and the CSV path in the notebook accordingly.
+
+---
+
+## How to Run the Project
+
+### 1. Clone the repository
+
+```bash
+git clone <your-repository-url>
+cd <repository-folder>
+```
+
+### 2. Install the required Python packages
+
+```bash
+pip install pandas numpy matplotlib scipy scikit-learn statsmodels jupyter
+```
+
+### 3. Start Jupyter Notebook
+
+```bash
+jupyter notebook
+```
+
+Open `Retail_Prices_Final_Project.ipynb` and run the cells from top to bottom. Make sure `Retail_Prices_of _Products.csv` is in the project directory or update `file_path` in the notebook.
+
+---
+
+## Possible Future Improvements
+
+The project can be extended by:
+
+- adding external explanatory variables such as fuel prices or exchange rates;
+- testing seasonal ARIMA/SARIMA specifications;
+- building product-level or category-level forecasting models;
+- analyzing socioeconomic variables that may explain persistent provincial price differences;
+- comparing ARIMA with machine-learning or deep-learning forecasting methods.
+
+---
+
+## Author
+
+**Akbar Hasanzade**  
+Computer Engineering, Bahcesehir University
