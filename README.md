@@ -1,4 +1,4 @@
-# Regional Dynamics of Canadian Retail Prices
+# Regional Dynamics of Canadian Retail Prices 2025
 
 **Exploratory Analysis, Provincial Clustering, and ARIMA-Based Forecasting**
 
